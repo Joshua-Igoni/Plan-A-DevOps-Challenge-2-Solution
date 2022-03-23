@@ -29,13 +29,13 @@ resource "aws_vpc" "eks-vpc" {
 * to go through, and aren't shielded by, the NAT Gateway.
 */
 resource "aws_subnet" "public_subnet" {
-  count = length(var.availability_zones)
-  vpc_id            = "${aws_vpc.eks-vpc.id}"
-  cidr_block = element(var.public_subnet_cidr_blocks, count.index)
-  availability_zone = element(var.availability_zones, count.index)
+  count                   = length(var.availability_zones)
+  vpc_id                  = "${aws_vpc.eks-vpc.id}"
+  cidr_block              = element(var.public_subnet_cidr_blocks, count.index)
+  availability_zone       = element(var.availability_zones, count.index)
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.env-prefix}-public"
+    Name                  = "${var.env-prefix}-public"
   }
 }
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "public_subnet" {
 */
 # Route the public subnet traffic through the IGW
 resource "aws_route_table" "main" {
-  vpc_id = "${aws_vpc.eks-vpc.id}"
+  vpc_id       = "${aws_vpc.eks-vpc.id}"
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -57,12 +57,12 @@ resource "aws_route_table" "main" {
   }
 
   tags = {
-    Name = "${var.env-prefix}-route-table"
+    Name       = "${var.env-prefix}-route-table"
   }
 }
 
 resource "aws_route_table_association" "internet_access" {
-  count = length(var.availability_zones)
+  count          = length(var.availability_zones)
   subnet_id      = "${aws_subnet.public_subnet[count.index].id}"
   route_table_id = "${aws_route_table.main.id}"
 }
@@ -79,13 +79,13 @@ resource "aws_route_table_association" "internet_access" {
 
 
 resource "aws_subnet" "private_subnet" {
-  count = length(var.availability_zones)
+  count             = length(var.availability_zones)
   vpc_id            = aws_vpc.eks-vpc.id
-  cidr_block = element(var.private_subnet_cidr_blocks, count.index)
+  cidr_block        = element(var.private_subnet_cidr_blocks, count.index)
   availability_zone = element(var.availability_zones, count.index)
 
   tags = {
-    Name = "${var.env-prefix}-private-subnets"
+    Name            = "${var.env-prefix}-private-subnets"
   }
 }
 
@@ -106,7 +106,7 @@ resource "aws_route_table" "private_rt" {
 * Associate the private route table with the private subnet.
 */
 resource "aws_route_table_association" "private-connectivity" {
-  count = length(var.availability_zones)
+  count          = length(var.availability_zones)
   subnet_id      = "${aws_subnet.private_subnet[count.index].id}"
   route_table_id = "${aws_route_table.private_rt.id}"
 }
@@ -145,12 +145,12 @@ resource "aws_nat_gateway" "main" {
   subnet_id     = aws_subnet.public_subnet[0].id
 
   tags = {
-    Name = "NAT Gateway for Custom Kubernetes Cluster"
+    Name        = "NAT Gateway for Custom Kubernetes Cluster"
   }
 }
 
 resource "aws_route" "main" {
   route_table_id            = aws_vpc.eks-vpc.default_route_table_id
   destination_cidr_block    = "0.0.0.0/0"
-  nat_gateway_id = aws_nat_gateway.main.id
+  nat_gateway_id            = aws_nat_gateway.main.id
 }
