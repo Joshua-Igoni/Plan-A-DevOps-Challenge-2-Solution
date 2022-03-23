@@ -7,3 +7,6 @@ variable "aws_profile" {
 variable "aws_region" {
   type = list
 }
+variable "env-prefix" {
+  type = string
+}
