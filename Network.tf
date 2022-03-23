@@ -39,15 +39,13 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
+
+
 /**
-* A route from the public route table out to the internet through the internet
+* A route from the main route table out to the internet through the internet
 * gateway.
 */
 
-/**
-* Associate the public route table with the public subnets.
-*/
-# Route the public subnet traffic through the IGW
 resource "aws_route_table" "main" {
   vpc_id       = "${aws_vpc.eks-vpc.id}"
 
@@ -61,11 +59,17 @@ resource "aws_route_table" "main" {
   }
 }
 
+/**
+* Associate the main route table with the public subnets.
+*/
+
 resource "aws_route_table_association" "internet_access" {
   count          = length(var.availability_zones)
   subnet_id      = "${aws_subnet.public_subnet[count.index].id}"
   route_table_id = "${aws_route_table.main.id}"
 }
+
+
 /******************************************************************************
 * Private Subnet 
 *******************************************************************************/
@@ -76,7 +80,6 @@ resource "aws_route_table_association" "internet_access" {
 * subnet will not have public IP addresses, and can access the public internet
 * only through the route to the NAT Gateway.
 */
-
 
 resource "aws_subnet" "private_subnet" {
   count             = length(var.availability_zones)
